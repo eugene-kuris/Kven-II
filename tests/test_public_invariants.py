@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -15,6 +16,11 @@ from kven_public.memory_store import get_connection, init_schema
 from kven_public.person_binding import PersonBindingStore, TransportIdentity
 from kven_public.model_adapters.registry import resolve_model_adapter
 from kven_public.planner_router import PlannerRouterError
+from kven_public.trusted_tools import (
+    ContinuationState,
+    TrustedObservation,
+    TrustedToolContinuation,
+)
 
 
 class PublicInvariantTests(unittest.TestCase):
@@ -117,6 +123,51 @@ class PublicInvariantTests(unittest.TestCase):
             second.feed("<think>private reasoning</think>Visible"),
             "<think>private reasoning</think>Visible",
         )
+
+    def test_tool_observations_require_executor_provenance(self):
+        continuation = TrustedToolContinuation(datetime.now(timezone.utc))
+        with self.assertRaises(ValueError):
+            continuation.accept(
+                TrustedObservation("get_time", "ok", {"iso": "example"}, False)
+            )
+        self.assertEqual(continuation.state, ContinuationState.FAILED)
+
+    def test_web_continuation_allows_one_selected_fetch(self):
+        continuation = TrustedToolContinuation(
+            datetime(2026, 1, 2, 3, 4, tzinfo=timezone.utc)
+        )
+        continuation.accept(
+            TrustedObservation(
+                "web_search",
+                "ok",
+                {"results": [{"url": "https://example.com/source"}]},
+                True,
+            )
+        )
+        continuation.accept(
+            TrustedObservation(
+                "fetch_url",
+                "ok",
+                {"url": "https://example.com/source", "text": "observed"},
+                True,
+            )
+        )
+        context = continuation.finalization_context()
+        self.assertEqual(continuation.state, ContinuationState.FINAL)
+        self.assertEqual(len(context["observations"]), 2)
+        self.assertIn("ordinary semantic answer", context["instruction"])
+
+    def test_web_continuation_rejects_unselected_or_recursive_hops(self):
+        continuation = TrustedToolContinuation(datetime.now(timezone.utc))
+        continuation.accept(
+            TrustedObservation(
+                "web_search", "ok", {"results": [{"url": "https://example.com/a"}]}, True
+            )
+        )
+        with self.assertRaises(ValueError):
+            continuation.accept(
+                TrustedObservation("fetch_url", "ok", {"url": "https://example.com/b"}, True)
+            )
 
 
 if __name__ == "__main__":

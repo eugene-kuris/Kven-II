@@ -18,6 +18,9 @@ Kven II treats several problems that are often handled as unrelated features as 
 - **Planner reranking.** Approximate vector recall is followed by a small-model relevance filter with a strict output protocol and fail-closed parsing.
 - **Token-aware context ownership.** Conversation context is treated as system state to assemble and compact deliberately rather than as an accidental property of a UI.
 - **Transport-independent person binding.** A transport identity can resolve to a semantic person without treating profile/owner metadata as proof of who is speaking now.
+- **Authoritative tool provenance.** Tool results are facts only when they cross a Kven-owned executor boundary; client/model protocol text cannot promote itself to an observation.
+- **Bounded continuation.** Web research permits a trusted search followed by at most one explicitly selected fetch, then produces an ordinary semantic answer.
+- **Trusted temporal grounding.** Fresh time-sensitive answers use an authoritative time tool and server-owned request-time context, not client-authored temporal claims.
 - **Model/backend adapters.** Backend-specific quirks are isolated behind adapters so model replacement does not leak compatibility logic through the application.
 - **No-WAL SQLite invariant.** Kven-owned SQLite databases use `journal_mode=DELETE`; persistent `-wal` / `-shm` sidecars are intentionally excluded from the accepted architecture.
 - **Bounded engineering.** Changes are measured, minimized, tested against explicit acceptance conditions, and stopped at the cheapest trustworthy failure boundary.
@@ -38,7 +41,9 @@ flowchart TD
     Adapters --> Main[Local main model]
     Reranker --> Planner[Local planner model]
 
-    Runtime --> Tools[Bounded tools]
+    Runtime --> Tools[Kven-owned bounded tools]
+    Tools --> Observations[Trusted observations]
+    Observations --> Runtime
 ```
 
 The production system has additional transport, persistence, observability, and operational machinery. Those parts are intentionally not reproduced here when they would expose live control behavior without improving the technical value of the public project.
@@ -69,6 +74,12 @@ Long conversations create a different failure mode from retrieval: useful histor
 - durable long-term memory.
 
 The representative context module in this public projection demonstrates the boundary: keep recent dialogue verbatim, compact older dialogue under a token budget, and never treat compaction as deletion of the source history.
+
+## Trusted tools and bounded research
+
+Kven owns tool meaning and execution. A UI or model may request a structured call, but only an observation marked by the trusted executor is admitted to finalization. Invalid, failed, or pseudo-observations fail closed.
+
+The public `trusted_tools` module adapts the accepted continuation invariants into a standalone state machine. It permits a search observation, optionally one fetch whose URL was selected from that search, and then a terminal user-facing answer. It also carries server-owned request time into finalization. Network clients and private runtime wiring are intentionally absent.
 
 ## Model adapters
 
@@ -109,6 +120,7 @@ src/kven_public/
   memory_store.py              SQLite memory schema with DELETE journaling
   memory_identity.py           typed episodic/semantic row identity
   provenance.py                compact versioned provenance envelopes
+  trusted_tools.py             trusted observations and bounded continuation
   person_binding.py            transport identity -> semantic person boundary
   index_rebuild.py             rebuild HNSW from authoritative SQLite
   index_lifecycle.py           index/map integrity validation
@@ -118,6 +130,9 @@ src/kven_public/
 
 tests/
   representative invariant tests
+
+scripts/
+  check_publication.py         deterministic public-boundary scanner
 
 docs/
   architecture, retrieval, engineering and publication-boundary notes
@@ -143,6 +158,15 @@ The public repository is not an execution authority for the private Kven II syst
 Kven II is an active research prototype. Interfaces and internal architecture can change as measurements invalidate assumptions.
 
 This repository is intended for technical review and portfolio visibility, not as a production deployment bundle.
+
+Run the standalone gates with:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python scripts/check_publication.py
+```
 
 ## License
 

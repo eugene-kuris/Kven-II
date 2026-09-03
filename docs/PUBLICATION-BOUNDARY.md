@@ -12,6 +12,8 @@ The public tree prioritizes source and documentation that explain:
 - planner reranking;
 - context-window boundaries;
 - model/backend adapters;
+- authoritative tool provenance and bounded continuation;
+- server-owned temporal-grounding patterns;
 - SQLite non-WAL storage discipline;
 - the engineering rationale behind those choices.
 
@@ -31,6 +33,8 @@ Operational material is excluded when publication would expose authority rather 
 - model files, logs, backups and evidence packages;
 - private task/handoff history;
 - private Git history.
+
+The repository-owned `scripts/check_publication.py` gate rejects private network literals, deployment paths, engineering control identities, runtime email identities, credential assignments, denied state/credential artifacts, binaries, symlinks, and oversized files. Its scope is the publication contract, not general threat modeling.
 
 ## One-way relationship
 

@@ -18,7 +18,10 @@ flowchart LR
     Memory --> Rank[Planner reranker]
 
     Runtime --> Model[Model adapters]
-    Runtime --> Tools[Tools / observations]
+    Runtime --> Tools[Kven-owned tool policy]
+    Tools --> Executor[Trusted executor]
+    Executor --> Observations[Provenanced observations]
+    Observations --> Runtime
 ```
 
 ### Conversation state
@@ -38,6 +41,16 @@ The accepted retrieval generation uses Qwen3-Embedding-8B normalized 4096-dimens
 ### Model boundary
 
 Model and server choices are replaceable components. Backend-specific normalization belongs in adapters. This public tree includes a concrete Qwen/llama.cpp stream adapter.
+
+### Tool ownership and continuation
+
+Tool semantics belong to Kven, not to the model or client. Structured requests execute through a trusted boundary or fail closed; protocol-shaped client/model text is not evidence that execution occurred.
+
+Continuations are bounded state transitions. The representative public path accepts a trusted web search, permits at most one fetch selected from its results, and then terminates in an ordinary semantic answer. It has no recursive browsing state. Current-time questions likewise depend on authoritative time execution and server-owned request-time grounding rather than client claims.
+
+### Transports and durable identity
+
+UI, social, and mail connections are transports around the same Kven-owned context, person/binding, memory, and retrieval state. A transport account identifier is durable routing evidence, not by itself authorization or a separate artificial personality. Private endpoints, concrete identities, ledgers, cursors, and session/control details are excluded here.
 
 ### Persistent-state discipline
 
