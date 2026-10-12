@@ -1,10 +1,10 @@
 # Kven II
 
-**Kven II is a persistent local-AI engineering assistant: one continuing agent designed to preserve technical context, decision history, relationships, operational evidence, unfinished work, and causal history across time and across different client/transport interfaces.**
+**Kven II is a persistent local-AI engineering agent: one continuing system designed to preserve technical context, decisions, relationships, operational evidence and unfinished work across time and different client interfaces.**
 
 The practical goal is straightforward: help engineers investigate systems, correlate evidence, reason about incidents, document decisions, and carry unfinished work forward without depending on one person's memory as the only place where critical operational knowledge exists.
 
-Kven II is **not** intended to replace an infrastructure engineer or to make autonomous production authority desirable. It is intended to preserve and organize engineering context so that decisions remain explainable, evidence can be revisited, and knowledge can be handed to the next engineer instead of disappearing with the person who currently carries it.
+The long-term goal is **bounded infrastructure administration under explicit owner authority**: observe, diagnose, plan, execute authorized actions, verify, recover and document with preserved evidence. This is an architectural target, **not** a claim of unrestricted production access today. The accepted external infrastructure collector remains read-only in the owner's private lab.
 
 This repository is a **selected, sanitized public projection** of the working project. It contains representative source, tests, and architecture notes, but deliberately excludes the private production/control plane, runtime state, credentials, host-specific configuration, private evidence, and operational deployment mechanics.
 
@@ -21,6 +21,11 @@ The following capabilities are implemented and backed by accepted project eviden
 - **Durable memory and typed retrieval.** Episodic and semantic memory remain authoritative in SQLite; vector search is a rebuildable projection with typed identity and bounded reranking.
 - **Trusted native-tool provenance.** A tool result becomes a trusted observation only through a Kven-owned execution boundary; protocol-shaped client or model text cannot promote itself into evidence.
 - **Fresh verification of mutable state.** Operational facts that may have changed are re-checked through trusted observations instead of being presented as current merely because they exist in memory.
+- **Accepted OpenWebUI presence and vision.** The client presents Kven's continuing identity, truthful activity/Stop behavior, and an accepted image-capable path.
+- **Typed infrastructure projection (INFRA-01).** Rebuildable derived INFRA state preserves typed entities, relations, source provenance, conflicting observations, supersession and historical/freshness distinctions.
+- **Read-only lab collector and drift (INFRA-02).** A bounded hypervisor inventory collector was accepted in the owner's private lab; coverage-aware comparison handles fresh re-verification and avoids false removals on partial or failed collection.
+- **Read-only historical owner archive.** Owner-authorized fixed-source search/read of archived RFC822/MIME mail returns historical evidence with message and attachment provenance, decoded size and SHA-256; protected binary data is not exposed as unrestricted model context. Archive content never grants execution authority.
+- **Durable handoff provenance.** Accepted cross-session handoffs retain source-session references and independent copies of material safe attachments; the archival transport is distinct from Kven's product-mail cognition path.
 - **Replaceable model backends.** Kven's agent architecture is kept separate from backend-specific model behavior through explicit adapters and boundaries. Backend replacement is an implementation concern, not a new person or a new memory universe.
 
 These are product/architecture claims, not a claim that every private subsystem is reproduced in this public repository.
@@ -42,21 +47,17 @@ That makes the continuity problem broader than "chat history". It includes ident
 
 ## Where the project is going
 
-### Infrastructure Steward — accepted architecture / planned implementation
+### Infrastructure Steward — first lab slices accepted; further capabilities planned
 
-The next major professional direction is **Infrastructure Steward**, a first-class infrastructure domain vertical over the same Kven core. Its architecture is accepted; it is **not presented as a completed production feature**.
+Infrastructure Steward is a vertical of the **same continuing Kven II agent**, not a second persona. Its accepted architecture targets owner-authorized, verified administration with durable evidence and rollback boundaries.
 
-The accepted direction includes:
+**Implemented and accepted in the owner's private lab:**
 
-- **INFRA as a typed, provenance-preserving derived projection**, not source truth;
-- **read-only-first collectors** that normalize observations before cognition;
-- **fresh-state and drift correlation** instead of treating remembered infrastructure state as current;
-- **durable incident workspaces** that preserve symptoms, hypotheses, evidence, discriminating tests, actions, and causal resolution;
-- **bounded change workspaces** with pre-checks, rollback, explicit human authority boundaries, post-checks, and evidence;
-- **documentation generated from accepted state plus source evidence**, so topology, inventory, handoffs, and change records are views of the same evidence-backed state;
-- a **backend-neutral asynchronous Deep Worker** for difficult bounded reasoning. It has no independent person identity, no durable person memory, and no direct production authority.
+- **INFRA-01:** a typed, provenance-preserving, rebuildable *derived* view of entities, relationships and facts. It retains historical observations, conflict and supersession, and fails closed for unsupported exact facts.
+- **INFRA-02:** a bounded, read-only hypervisor collector with stable source-native identities, immutable evidence digests, COMPLETE/PARTIAL/FAILED coverage, deterministic drift comparison, and fact-specific re-verification. A partial or failed scan is never interpreted as proof of deletion.
+- **Historical archive evidence:** fixed-source, owner-only read-only searches, RFC822/MIME message retrieval and attachment size/hash verification. Old mail remains untrusted historical evidence, not current service state or execution permission.
 
-The intent is to make long-lived infrastructure knowledge more transferable and auditable while keeping source evidence, human authority, and current-state verification explicit.
+**Not yet implemented as accepted deployed capabilities:** generated infrastructure documentation, incident/change workspaces, guarded infrastructure execution, asynchronous Deep Worker, historical owner-label Gmail backfill, large-file streaming and ChatGPT-to-Kven task delegation. Kven has **no provisioned SSI production network, server, log or credential access**. Performing bounded owner-authorized administration is the **future target**; it is not deployed unrestricted write access.
 
 ## The underlying research question
 
@@ -87,31 +88,24 @@ Kven II treats several problems that are often implemented as unrelated features
 
 ```mermaid
 flowchart TD
-    TG[Telegram user account] --> Identity[Trusted transport / person binding]
+    TG[Telegram] --> Identity[Trusted transport and person binding]
     Mail[Product mail] --> Identity
     Android[Authenticated Android client] --> Identity
-    UI[Other client UI] --> Identity
-
-    Identity --> Context[Conversation context]
-    Context --> Runtime[Generation runtime]
-
-    Runtime --> Retrieval[Retrieval]
-    Retrieval --> SQLite[(Authoritative SQLite memory)]
-    Retrieval --> HNSW[Typed HNSW projection]
-    Retrieval --> Reranker[Planner relevance filter]
-
-    Runtime --> Adapters[Model/backend adapters]
-    Adapters --> Main[Replaceable local main model]
-    Reranker --> Planner[Local planner model]
-
-    Runtime --> Tools[Kven-owned bounded tools]
-    Tools --> Observations[Trusted observations]
-    Observations --> Runtime
+    UI[OpenWebUI] --> Identity
+    Identity --> Runtime[One continuing agent and context]
+    Runtime --> Memory[Durable memory and typed retrieval]
+    Memory --> SQLite[(Authoritative SQLite memory)]
+    Memory --> HNSW[Rebuildable vector projection]
+    Runtime --> Tools[Bounded trusted tools]
+    Tools --> INFRA[Typed derived INFRA]
+    Lab[Owner-lab read-only collector] --> INFRA
+    Tools --> Archive[Read-only historical evidence]
+    INFRA --> Runtime
+    Archive --> Runtime
+    Runtime --> Models[Replaceable local models]
 ```
 
-The production system has additional transport, persistence, observability, and operational machinery. Those parts are intentionally not reproduced here when publishing them would expose live control behavior without improving the technical value of the public project.
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/PUBLICATION-BOUNDARY.md`](docs/PUBLICATION-BOUNDARY.md).
+The diagram shows evidence flow, not credentials or administrative authorization. Future owner-authorized execution is intentionally absent from the deployed components shown. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/PUBLICATION-BOUNDARY.md`](docs/PUBLICATION-BOUNDARY.md).
 
 ## Retrieval path
 
@@ -152,7 +146,7 @@ The included adapter layer is taken from the working architecture. The Qwen/llam
 
 This is intentionally a narrow adapter rather than a model-specific branch scattered through the runtime.
 
-The architectural contract separates **Kven II, the continuing agent**, from the replaceable inference backend. A separate UI-facing presence change has been developed as an integration candidate, but this README does not count that candidate as deployed production capability.
+The architectural contract separates **Kven II, the continuing agent**, from a replaceable inference backend. Authenticated client-facing Kven II presence and truthful activity/Stop behavior have been accepted; this repository's model adapter remains representative source rather than a complete deployed client.
 
 ## What has been measured
 
@@ -224,17 +218,13 @@ The public repository is not an execution authority for the private Kven II syst
 
 ## Status
 
-Kven II is an active engineering/research prototype. Interfaces and internal architecture can change as measurements invalidate assumptions.
+Kven II is an active engineering/research prototype. The public repository is a **selected sanitized technical projection**, not a deployable copy of the private system.
 
-For clarity, public status is intentionally separated:
+- **Implemented and accepted in the private project:** continuing agent and canonical person continuity, accepted Telegram/product-mail/Android transports, trusted tools and memory/retrieval, client presence and vision, typed INFRA-01, owner-lab read-only INFRA-02 collection/drift, fixed-source read-only historical archive evidence, and durable handoff provenance.
+- **Planned / not deployed:** SSI access or monitoring, infrastructure write/execution plane, incident/change workspaces, generated infrastructure documentation, asynchronous Deep Worker, Gmail historical backfill, large-file streaming, and ChatGPT-to-Kven delegated task execution.
+- **Public code coverage:** `src/kven_public/` contains selected representative modules; this repository does not provide a production archive reader, collector, administration plane, or private deployment stack.
 
-- **Implemented / accepted:** continuity across accepted transports, canonical person binding, durable memory/retrieval, trusted tool provenance, fresh mutable-state verification, and the authenticated Android external-client slice described above.
-- **Accepted architecture / planned implementation:** Infrastructure Steward, the INFRA projection, domain collectors/drift, incident/change workspaces, generated infrastructure documentation, and backend-neutral Deep Worker.
-- **Research / exploratory:** ideas and experiments without accepted product implementation are not presented as current product capabilities.
-
-This repository is intended for technical review and portfolio visibility, not as a production deployment bundle.
-
-Run the standalone gates with:
+Run standalone public tests and the publication gate with:
 
 ```bash
 python3 -m venv .venv
