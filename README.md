@@ -84,6 +84,14 @@ Kven II treats several problems that are often implemented as unrelated features
 - **No-WAL SQLite invariant.** Kven-owned SQLite databases use `journal_mode=DELETE`; persistent `-wal` / `-shm` sidecars are intentionally excluded from the accepted architecture.
 - **Bounded engineering.** Changes are measured, minimized, tested against explicit acceptance conditions, and stopped at the cheapest trustworthy failure boundary.
 
+### Standalone INFRA reference example
+
+The [synthetic INFRA reference](docs/INFRA-REFERENCE.md) demonstrates typed
+observation provenance, deterministic replay, unresolved conflicts, explicit
+supersession, source/scope-aware COMPLETE/PARTIAL/FAILED drift and fact-specific
+freshness. This pure-Python illustration is **not** the deployed collector or
+its private runtime/authorization implementation.
+
 ## Public architecture
 
 ```mermaid
